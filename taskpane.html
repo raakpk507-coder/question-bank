@@ -466,11 +466,7 @@ async function insertAllToWord() {
       const body = context.document.body;
       for (let i = 0; i < generatedPaper.length; i++) {
         const q = generatedPaper[i];
-        // Insert question number as plain text first
-        const numPara = body.getRange(Word.RangeLocation.end).insertParagraph("Q" + (i+1) + ".", Word.InsertLocation.before);
-        numPara.styleBuiltIn = Word.Style.normal;
-        await context.sync();
-        // Then insert OMML question
+        // Insert OMML question
         body.getRange(Word.RangeLocation.end).insertOoxml(q.ooxml, Word.InsertLocation.before);
         await context.sync();
         if (i < generatedPaper.length - 1) {
