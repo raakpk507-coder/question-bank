@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Question Bank</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    /* ── Header ── */
+    #header {
+      background: #1a56db;
+      color: white;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #header h1 { font-size: 15px; font-weight: bold; }
+    #header span { font-size: 11px; opacity: 0.8; }
+
+    /* ── Search ── */
+    #search-bar {
+      padding: 8px 10px;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+    }
+    #search-bar input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    /* ── Filter tabs ── */
+    #filter-tabs {
+      display: flex;
+      background: #fff;
+      border-bottom: 2px solid #e0e0e0;
+      padding: 0 10px;
+      gap: 4px;
+    }
+    .tab {
+      padding: 7px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      color: #555;
+    }
+    .tab.active {
+      color: #1a56db;
+      border-bottom: 2px solid #1a56db;
+      font-weight: bold;
+    }
+
+    /* ── Chapter tabs ── */
+    #chapter-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 8px 10px;
+      background: #f0f4ff;
+      border-bottom: 1px solid #ddd;
+    }
+    .chapter-btn {
+      padding: 4px 10px;
+      font-size: 11px;
+      border-radius: 12px;
+      border: 1px solid #aac;
+      background: #fff;
+      cursor: pointer;
+      color: #333;
+    }
+    .chapter-btn.selected {
+      background: #1a56db;
+      color: #fff;
+      border-color: #1a56db;
+    }
+
+    /* ── Stats bar ── */
+    #stats {
+      padding: 5px 12px;
+      font-size: 11px;
+      color: #666;
+      background: #fff;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      gap: 14px;
+    }
+    #stats .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; }
+    .dot-green { background: #22c55e; }
+    .dot-grey  { background: #aaa; }
+
+    /* ── Question list ── */
+    #question-list {
+      overflow-y: auto;
+      height: calc(100vh - 210px);
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .q-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 9px 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .q-card:hover { border-color: #1a56db; box-shadow: 0 1px 4px rgba(26,86,219,0.15); }
+    .q-card.used {
+      background: #f9f9f9;
+      color: #aaa;
+      cursor: not-allowed;
+    }
+    .q-card.used:hover { border-color: #ddd; box-shadow: none; }
+
+    .q-id {
+      font-size: 10px;
+      color: #999;
+      margin-bottom: 3px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .q-id .badge {
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    .badge-available { background: #dcfce7; color: #15803d; }
+    .badge-used      { background: #f3f4f6; color: #999; }
+
+    .q-text { font-size: 12px; line-height: 1.4; }
+    .q-chapter { font-size: 10px; color: #888; margin-top: 4px; }
+
+    .used-in { font-size: 10px; color: #bbb; margin-top: 2px; font-style: italic; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a56db;
+      color: white;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 12px;
+      display: none;
+      z-index: 999;
+    }
+
+    /* ── Empty state ── */
+    #empty {
+      text-align: center;
+      padding: 30px 20px;
+      color: #999;
+      font-size: 12px;
+    }
+
+    /* ── Paper name input ── */
+    #paper-bar {
+      padding: 6px 10px;
+      background: #fff8ec;
+      border-bottom: 1px solid #ffe0a0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #paper-bar label { font-size: 11px; color: #888; white-space: nowrap; }
+    #paper-name {
+      flex: 1;
+      font-size: 11px;
+      padding: 4px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <h1>📚 Question Bank</h1>
+  <span>Class 5 Math</span>
+</div>
+
+<div id="search-bar">
+  <input type="text" id="search-input" placeholder="Search questions..." oninput="render()" />
+</div>
+
+<div id="paper-bar">
+  <label>Paper name:</label>
+  <input type="text" id="paper-name" placeholder="e.g. Fractions_Test_April" />
+</div>
+
+<div id="filter-tabs">
+  <div class="tab active" onclick="setFilter('all', this)">All</div>
+  <div class="tab" onclick="setFilter('available', this)">✅ Available</div>
+  <div class="tab" onclick="setFilter('used', this)">❌ Used</div>
+</div>
+
+<div id="chapter-tabs"></div>
+<div id="stats"></div>
+<div id="question-list"></div>
+<div id="toast"></div>
+
+<script>
+// ─── CONFIG — Update these before uploading to GitHub ───────────────────────
+const GH_OWNER  = "raakpk507-coder";
+const GH_REPO   = "question-bank";
+const GH_BRANCH = "main";
+const JSON_PATH = "questions.json";
+const GH_TOKEN  = "";  // Leave blank — update via GitHub settings if needed
+// ─────────────────────────────────────────────────────────────────────────────
+
+let allQuestions = [];
+let currentFilter = "all";
+let currentChapter = "All";
+let jsonSha = "";
+
+// ── Office init ─────────────────────────────────────────────────────────────
+Office.onReady(() => {
+  loadQuestions();
+});
+
+// ── Load from GitHub ─────────────────────────────────────────────────────────
+async function loadQuestions() {
+  try {
+    const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${JSON_PATH}?ref=${GH_BRANCH}`;
+    const headers = { "Accept": "application/vnd.github.v3+json" };
+    if (GH_TOKEN) headers["Authorization"] = `token ${GH_TOKEN}`;
+
+    const res = await fetch(url, { headers });
+    const data = await res.json();
+    jsonSha = data.sha;
+    const decoded = JSON.parse(atob(data.content.replace(/\n/g, "")));
+    allQuestions = decoded.questions;
+    buildChapterTabs();
+    render();
+  } catch (e) {
+    document.getElementById("question-list").innerHTML =
+      `<div id="empty">❌ Could not load questions.<br/>Check GitHub config in taskpane.html</div>`;
+  }
+}
+
+// ── Chapter tabs ─────────────────────────────────────────────────────────────
+function buildChapterTabs() {
+  const chapters = ["All", ...new Set(allQuestions.map(q => q.chapter))];
+  const container = document.getElementById("chapter-tabs");
+  container.innerHTML = chapters.map(ch =>
+    `<button class="chapter-btn ${ch === currentChapter ? 'selected' : ''}"
+      onclick="setChapter('${ch}', this)">${ch}</button>`
+  ).join("");
+}
+
+function setChapter(ch, btn) {
+  currentChapter = ch;
+  document.querySelectorAll(".chapter-btn").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+  render();
+}
+
+function setFilter(f, tab) {
+  currentFilter = f;
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  tab.classList.add("active");
+  render();
+}
+
+// ── Render ───────────────────────────────────────────────────────────────────
+function render() {
+  const search = document.getElementById("search-input").value.toLowerCase();
+
+  let filtered = allQuestions.filter(q => {
+    const matchChapter = currentChapter === "All" || q.chapter === currentChapter;
+    const matchFilter =
+      currentFilter === "all" ? true :
+      currentFilter === "available" ? !q.used :
+      q.used;
+    const matchSearch = q.text.toLowerCase().includes(search) ||
+                        q.chapter.toLowerCase().includes(search);
+    return matchChapter && matchFilter && matchSearch;
+  });
+
+  // Stats
+  const total     = allQuestions.filter(q => currentChapter === "All" || q.chapter === currentChapter).length;
+  const available = allQuestions.filter(q => (currentChapter === "All" || q.chapter === currentChapter) && !q.used).length;
+  document.getElementById("stats").innerHTML =
+    `<span><span class="dot dot-green"></span>${available} available</span>
+     <span><span class="dot dot-grey"></span>${total - available} used</span>
+     <span>Total: ${total}</span>`;
+
+  const list = document.getElementById("question-list");
+  if (filtered.length === 0) {
+    list.innerHTML = `<div id="empty">No questions found.</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(q => `
+    <div class="q-card ${q.used ? 'used' : ''}" onclick="${q.used ? '' : `insertQuestion('${q.id}')`}">
+      <div class="q-id">
+        <span>${q.id} · ${q.chapter}</span>
+        <span class="badge ${q.used ? 'badge-used' : 'badge-available'}">
+          ${q.used ? '❌ Used' : '✅ Available'}
+        </span>
+      </div>
+      <div class="q-text">${q.text}</div>
+      ${q.usedIn ? `<div class="used-in">Used in: ${q.usedIn}</div>` : ""}
+    </div>
+  `).join("");
+}
+
+// ── Insert into Word ──────────────────────────────────────────────────────────
+async function insertQuestion(id) {
+  const q = allQuestions.find(x => x.id === id);
+  if (!q || q.used) return;
+
+  try {
+    await Word.run(async (context) => {
+      const selection = context.document.getSelection();
+      selection.insertOoxml(q.ooxml, Word.InsertLocation.replace);
+      await context.sync();
+    });
+
+    // Mark as used
+    const paperName = document.getElementById("paper-name").value.trim() || "Unnamed_Paper";
+    q.used = true;
+    q.usedIn = paperName;
+
+    showToast(`✅ Inserted! Marked as used in ${paperName}`);
+    render();
+    saveToGitHub();
+  } catch (e) {
+    showToast("❌ Insert failed. Is Word open?");
+  }
+}
+
+// ── Save back to GitHub ───────────────────────────────────────────────────────
+async function saveToGitHub() {
+  if (!GH_TOKEN) return; // Skip if no token
+
+  try {
+    const payload = {
+      meta: { class: "5", subject: "Math", lastUpdated: new Date().toISOString().split("T")[0] },
+      questions: allQuestions
+    };
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+    const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${JSON_PATH}`;
+
+    await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Authorization": `token ${GH_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: `Mark question as used`,
+        content,
+        sha: jsonSha,
+        branch: GH_BRANCH
+      })
+    });
+  } catch (e) {
+    console.error("GitHub save failed", e);
+  }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.display = "block";
+  setTimeout(() => t.style.display = "none", 2500);
+}
+</script>
+</body>
+</html>
