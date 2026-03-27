@@ -362,15 +362,14 @@ function render() {
   });
 }
 
+// ✅ FIX: Plain text insert — no OOXML, no 0x80070057 error
 async function insertQuestion(id) {
   const q = allQuestions.find(x => x.id === id);
   if (!q || q.used) return;
   try {
     await Word.run(async (context) => {
       const body = context.document.body;
-      body.load("style");
-      await context.sync();
-      body.insertOoxml(q.ooxml, Word.InsertLocation.end);
+      body.insertText(q.text, Word.InsertLocation.end);
       await context.sync();
     });
     const pname = document.getElementById("paper-name").value.trim() || "Unnamed_Paper";
@@ -524,7 +523,7 @@ function removeFromPaper(id) {
   showToast("Removed");
 }
 
-// ✅ FIXED: insertAllToWord — uses body.insertOoxml directly instead of body.getRange(Word.RangeLocation.end)
+// ✅ FIX: insertAllToWord — plain text insert, numbered questions
 async function insertAllToWord() {
   if (!generatedPaper.length) { showToast("❌ Pehle generate karo"); return; }
   const paperName = document.getElementById("gen-paper-name").value.trim() || "Auto_Paper";
@@ -532,19 +531,14 @@ async function insertAllToWord() {
   try {
     await Word.run(async (context) => {
       const body = context.document.body;
-      body.load("style");
-      await context.sync();
 
       for (let i = 0; i < generatedPaper.length; i++) {
         const q = generatedPaper[i];
-        // ✅ Direct body.insertOoxml — reliable across all Word versions
-        body.insertOoxml(q.ooxml, Word.InsertLocation.end);
+        const lineText = `Q${i + 1}. ${q.text}`;
+        body.insertText(lineText, Word.InsertLocation.end);
+        // Add a new paragraph after each question
+        body.insertParagraph("", Word.InsertLocation.end);
         await context.sync();
-
-        if (i < generatedPaper.length - 1) {
-          body.insertParagraph("", Word.InsertLocation.end);
-          await context.sync();
-        }
       }
     });
 
@@ -612,6 +606,7 @@ function closeFP() {
   forceQId = null;
 }
 
+// ✅ FIX: forceInsert — plain text bhi
 async function forceInsert() {
   if (!forceQId) return;
   closeFP();
@@ -620,9 +615,7 @@ async function forceInsert() {
   try {
     await Word.run(async (context) => {
       const body = context.document.body;
-      body.load("style");
-      await context.sync();
-      body.insertOoxml(q.ooxml, Word.InsertLocation.end);
+      body.insertText(q.text, Word.InsertLocation.end);
       await context.sync();
     });
     showToast("✅ Force inserted — " + q.id);
