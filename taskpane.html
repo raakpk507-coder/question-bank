@@ -223,12 +223,13 @@
 const GH_OWNER  = "raakpk507-coder";
 const GH_REPO   = "question-bank";
 const GH_BRANCH = "main";
-const JSON_PATH = "questions.json";
+const INDEX_PATH = "index.json";
 const GH_TOKEN  = "";
 
 let allQuestions = [];
 let historyData = [];
-let jsonSha = "";
+let fileShas = {};        // { "fractions": "sha...", "history": "sha..." }
+let chapterKeys = [];     // ["fractions","factors","geometry","mensuration"]
 let currentFilter = "all";
 let currentChapter = "All";
 let generatedPaper = [];
@@ -249,15 +250,34 @@ function switchTab(name, el) {
 
 async function loadQuestions() {
   try {
-    const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${JSON_PATH}?ref=${GH_BRANCH}&t=${Date.now()}`;
     const headers = { "Accept": "application/vnd.github.v3+json" };
     if (GH_TOKEN) headers["Authorization"] = `token ${GH_TOKEN}`;
-    const res = await fetch(url, { headers });
-    const data = await res.json();
-    jsonSha = data.sha;
-    const decoded = JSON.parse(atob(data.content.replace(/\n/g, "")));
-    allQuestions = decoded.questions;
-    historyData = decoded.history || [];
+
+    // Step 1: Load index.json — chapter list + history file name
+    const idxRes  = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${INDEX_PATH}?ref=${GH_BRANCH}&t=${Date.now()}`, { headers });
+    const idxData = await idxRes.json();
+    const index   = JSON.parse(atob(idxData.content.replace(/\n/g, "")));
+    chapterKeys   = index.chapters;                      // ["fractions","factors",...]
+    const histKey = index.historyFile || "history";      // "history"
+
+    // Step 2: Load all chapter files in parallel
+    const chapterFetches = chapterKeys.map(key =>
+      fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${key}.json?ref=${GH_BRANCH}&t=${Date.now()}`, { headers })
+        .then(r => r.json())
+        .then(d => {
+          fileShas[key] = d.sha;
+          return JSON.parse(atob(d.content.replace(/\n/g, ""))).questions;
+        })
+    );
+    const allChapterQuestions = await Promise.all(chapterFetches);
+    allQuestions = allChapterQuestions.flat();
+
+    // Step 3: Load history.json separately
+    const histRes  = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${histKey}.json?ref=${GH_BRANCH}&t=${Date.now()}`, { headers });
+    const histData = await histRes.json();
+    fileShas[histKey] = histData.sha;
+    historyData = JSON.parse(atob(histData.content.replace(/\n/g, ""))).history || [];
+
     buildChapterTabs();
     render();
   } catch (e) {
@@ -523,13 +543,31 @@ async function insertAllToWord() {
 async function saveToGitHub() {
   if (!GH_TOKEN) return;
   try {
-    const payload = { meta: { class:"5", subject:"Math", lastUpdated: new Date().toISOString().split("T")[0] }, questions: allQuestions, history: historyData };
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
-    await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${JSON_PATH}`, {
-      method: "PUT",
-      headers: { "Authorization":`token ${GH_TOKEN}`, "Content-Type":"application/json" },
-      body: JSON.stringify({ message:"Update question usage", content, sha: jsonSha, branch: GH_BRANCH })
+    const headers = { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" };
+
+    // Save each chapter file with updated question used/usedIn status
+    const chapterSaves = chapterKeys.map(key => {
+      const chQuestions = allQuestions.filter(q => q.chapter.toLowerCase().replace(/[^a-z]/g, "") === key.replace(/[^a-z]/g, "") || q.chapter === key);
+      // Match by chapter key — find chapter name from first question or use key
+      const chapterName = chQuestions[0]?.chapter || key;
+      const payload = { chapter: chapterName, questions: chQuestions };
+      const content  = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+      return fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${key}.json`, {
+        method: "PUT", headers,
+        body: JSON.stringify({ message: `Update ${key} questions`, content, sha: fileShas[key], branch: GH_BRANCH })
+      }).then(r => r.json()).then(d => { if (d.content) fileShas[key] = d.content.sha; });
     });
+
+    // Save history.json separately
+    const histKey     = "history";
+    const histPayload = { history: historyData };
+    const histContent = btoa(unescape(encodeURIComponent(JSON.stringify(histPayload, null, 2))));
+    const historySave = fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${histKey}.json`, {
+      method: "PUT", headers,
+      body: JSON.stringify({ message: "Update history", content: histContent, sha: fileShas[histKey], branch: GH_BRANCH })
+    }).then(r => r.json()).then(d => { if (d.content) fileShas[histKey] = d.content.sha; });
+
+    await Promise.all([...chapterSaves, historySave]);
   } catch (e) {}
 }
 
