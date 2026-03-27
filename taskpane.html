@@ -87,6 +87,29 @@
     .remove-btn { font-size: 11px; color: #dc2626; cursor: pointer; padding: 2px 5px; background: #fee2e2; border-radius: 4px; border: none; flex-shrink: 0; }
     .removed { opacity: 0.3; text-decoration: line-through; pointer-events: none; }
 
+    /* History */
+    #page-history { padding: 10px; }
+    .hist-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+    .hist-hdr { padding: 10px 12px; cursor: pointer; display: flex; align-items: flex-start; gap: 8px; }
+    .hist-hdr:hover { background: #f9f9f9; }
+    .hist-main { flex: 1; min-width: 0; }
+    .hist-date { font-size: 10px; color: #f59e0b; font-weight: bold; margin-bottom: 3px; }
+    .hist-title { font-size: 13px; font-weight: bold; margin-bottom: 2px; }
+    .hist-detail { font-size: 11px; color: #888; line-height: 1.6; }
+    .hist-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .hist-body { display: none; border-top: 1px solid #eee; }
+    .hist-body.open { display: block; }
+    .hist-q-row { padding: 7px 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #f5f5f5; font-size: 12px; }
+    .hist-q-row:last-child { border-bottom: none; }
+    .hist-q-id { font-size: 10px; color: #999; min-width: 50px; }
+    .hist-q-text { flex: 1; color: #444; }
+    .hist-q-ch { font-size: 10px; color: #888; background: #f5f5f5; padding: 1px 5px; border-radius: 4px; }
+    .undo-btn { font-size: 10px; padding: 3px 8px; border-radius: 5px; border: 1px solid #fcd34d; background: #fefce8; color: #92400e; cursor: pointer; font-weight: bold; }
+    .undo-btn:hover { background: #fef3c7; }
+    .chev { color: #999; font-size: 10px; margin-top: 2px; transition: transform 0.2s; }
+    .chev.open { transform: rotate(180deg); }
+    .empty-hist { text-align: center; padding: 30px 20px; color: #999; font-size: 12px; }
+
     #toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: #1a56db; color: white; padding: 8px 18px; border-radius: 20px; font-size: 12px; display: none; z-index: 999; white-space: nowrap; }
     .empty-state { text-align: center; padding: 30px 20px; color: #999; font-size: 12px; }
 
@@ -112,6 +135,7 @@
 <div id="main-tabs">
   <div class="main-tab active" onclick="switchTab('browse', this)">🔍 Browse</div>
   <div class="main-tab" onclick="switchTab('generate', this)">⚡ Generate</div>
+  <div class="main-tab" onclick="switchTab('history', this)">🕐 History</div>
 </div>
 
 <!-- BROWSE PAGE -->
@@ -176,6 +200,11 @@
   </div>
 </div>
 
+<!-- History Page -->
+<div class="page" id="page-history">
+  <div id="history-list"><div class="empty-hist">Koi history nahi abhi.</div></div>
+</div>
+
 <!-- Force Add Popup -->
 <div id="force-popup" onclick="if(event.target===this)closeFP()">
   <div class="fp-sheet">
@@ -198,6 +227,7 @@ const JSON_PATH = "questions.json";
 const GH_TOKEN  = "";
 
 let allQuestions = [];
+let historyData = [];
 let jsonSha = "";
 let currentFilter = "all";
 let currentChapter = "All";
@@ -214,6 +244,7 @@ function switchTab(name, el) {
   document.getElementById('page-' + name).classList.add('active');
   el.classList.add('active');
   if (name === 'generate') buildDistEditor();
+  if (name === 'history') renderHistory();
 }
 
 async function loadQuestions() {
@@ -226,6 +257,7 @@ async function loadQuestions() {
     jsonSha = data.sha;
     const decoded = JSON.parse(atob(data.content.replace(/\n/g, "")));
     allQuestions = decoded.questions;
+    historyData = decoded.history || [];
     buildChapterTabs();
     render();
   } catch (e) {
@@ -309,7 +341,8 @@ async function insertQuestion(id) {
     });
     const pname = document.getElementById("paper-name").value.trim() || "Unnamed_Paper";
     q.used = true; q.usedIn = pname;
-    showToast(`✅ Inserted — ${q.id}`);
+    addHistory(pname, [q]);
+    showToast("✅ Inserted — " + q.id);
     render(); saveToGitHub();
   } catch (e) { showToast("❌ Insert failed"); }
 }
@@ -479,7 +512,8 @@ async function insertAllToWord() {
       const orig = allQuestions.find(x => x.id === q.id);
       if (orig) { orig.used = true; orig.usedIn = paperName; }
     });
-    showToast(`✅ ${generatedPaper.length} questions inserted!`);
+    addHistory(paperName, generatedPaper);
+    showToast("✅ " + generatedPaper.length + " questions inserted!");
     render(); saveToGitHub();
     generatedPaper = [];
     document.getElementById("paper-output").style.display = "none";
@@ -489,7 +523,7 @@ async function insertAllToWord() {
 async function saveToGitHub() {
   if (!GH_TOKEN) return;
   try {
-    const payload = { meta: { class:"5", subject:"Math", lastUpdated: new Date().toISOString().split("T")[0] }, questions: allQuestions };
+    const payload = { meta: { class:"5", subject:"Math", lastUpdated: new Date().toISOString().split("T")[0] }, questions: allQuestions, history: historyData };
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
     await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${JSON_PATH}`, {
       method: "PUT",
@@ -527,6 +561,99 @@ async function forceInsert() {
     });
     showToast("✅ Force inserted — " + q.id);
   } catch(e) { showToast("❌ Insert failed"); }
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+
+function addHistory(paperName, questions) {
+  const chapters = {};
+  questions.forEach(q => {
+    if (!chapters[q.chapter]) chapters[q.chapter] = 0;
+    chapters[q.chapter]++;
+  });
+  const entry = {
+    id: Date.now(),
+    paperName: paperName,
+    date: new Date().toLocaleDateString('en-IN'),
+    datetime: new Date().toLocaleString('en-IN'),
+    count: questions.length,
+    chapters: Object.entries(chapters).map(([ch, cnt]) => ({ chapter: ch, count: cnt })),
+    questionIds: questions.map(q => q.id)
+  };
+  historyData.unshift(entry);
+  if (historyData.length > 100) historyData = historyData.slice(0, 100);
+}
+
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (!historyData.length) {
+    el.innerHTML = '<div class="empty-hist">📋 Koi history nahi abhi.<br/>Questions insert karo — yahan track hoga.</div>';
+    return;
+  }
+  let html = '';
+  historyData.forEach(function(h, hi) {
+    const detail = h.chapters.map(c => c.chapter + ' (' + c.count + 'Q)').join(' · ');
+    const canUndo = hi === 0;
+    const qRows = (h.questionIds || []).map(function(id) {
+      const q = allQuestions.find(x => x.id === id);
+      if (!q) return '';
+      return '<div class="hist-q-row">' +
+        '<span class="hist-q-id">' + id + '</span>' +
+        '<span class="hist-q-text">' + q.text + '</span>' +
+        '<span class="hist-q-ch">' + q.chapter + '</span>' +
+        '</div>';
+    }).join('');
+
+    html += '<div class="hist-card">' +
+      '<div class="hist-hdr" onclick="toggleHistCard(' + hi + ')">' +
+        '<div class="hist-main">' +
+          '<div class="hist-date">' + h.datetime + '</div>' +
+          '<div class="hist-title">📄 ' + h.paperName + '</div>' +
+          '<div class="hist-detail">' + h.count + ' questions · ' + detail + '</div>' +
+        '</div>' +
+        '<div class="hist-right">' +
+          (canUndo ? '<button class="undo-btn" onclick="event.stopPropagation();confirmUndo(' + hi + ')">↩ Undo</button>' : '') +
+          '<span class="chev" id="hchev-' + hi + '">▾</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="hist-body" id="hbody-' + hi + '">' + qRows + '</div>' +
+    '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function toggleHistCard(hi) {
+  const body = document.getElementById('hbody-' + hi);
+  const chev = document.getElementById('hchev-' + hi);
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open', open);
+}
+
+function confirmUndo(hi) {
+  const h = historyData[hi];
+  if (!h) return;
+  if (!confirm('↩ Undo karein?\n\n"' + h.paperName + '" (' + h.count + ' questions) wapas fresh ho jaayenge.\n\nSure hain?')) return;
+  undoPaper(hi);
+}
+
+function undoPaper(hi) {
+  const h = historyData[hi];
+  if (!h) return;
+  let undone = 0;
+  (h.questionIds || []).forEach(function(id) {
+    const q = allQuestions.find(x => x.id === id);
+    if (q && q.used) {
+      q.used = false;
+      q.usedIn = '';
+      undone++;
+    }
+  });
+  historyData.splice(hi, 1);
+  renderHistory();
+  render();
+  saveToGitHub();
+  showToast("↩ Undo! " + undone + " questions wapas fresh hue.");
 }
 
 function showToast(msg) {
