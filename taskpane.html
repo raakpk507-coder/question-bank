@@ -227,9 +227,9 @@ const GH_TOKEN  = "";
 
 let allQuestions = [];
 let historyData = [];
-let fileShas = {};        // { "fractions": "sha...", "history": "sha..." }
-let chapterKeys = [];     // ["fractions","factors","geometry","mensuration"]
-let chapterKeyMap = {};   // { "Factors & Multiples": "factors", "Fractions": "fractions", ... }
+let fileShas = {};
+let chapterKeys = [];
+let chapterKeyMap = {};
 let currentFilter = "all";
 let currentChapter = "All";
 let generatedPaper = [];
@@ -253,18 +253,15 @@ async function loadQuestions() {
     const headers = { "Accept": "application/vnd.github.v3+json" };
     if (GH_TOKEN) headers["Authorization"] = `token ${GH_TOKEN}`;
 
-    // Step 1: Scan repo root — get list of ALL .json files automatically
     const dirRes  = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/?ref=${GH_BRANCH}&t=${Date.now()}`, { headers });
     const dirData = await dirRes.json();
 
-    // Reserved files to skip — everything else that's .json is a chapter
     const SKIP_FILES = new Set(["index.json", "history.json"]);
     const chapterFiles = dirData
       .filter(f => f.type === "file" && f.name.endsWith(".json") && !SKIP_FILES.has(f.name));
 
-    chapterKeys = chapterFiles.map(f => f.name.replace(".json", "")); // ["fractions","factors",...]
+    chapterKeys = chapterFiles.map(f => f.name.replace(".json", ""));
 
-    // Step 2: Load all chapter files in parallel (using download_url — no auth needed for public repos)
     const chapterFetches = chapterFiles.map(f =>
       fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${f.name}?ref=${GH_BRANCH}&t=${Date.now()}`, { headers })
         .then(r => r.json())
@@ -272,14 +269,12 @@ async function loadQuestions() {
           const key = f.name.replace(".json", "");
           fileShas[key] = d.sha;
           const parsed = JSON.parse(atob(d.content.replace(/\n/g, "")));
-          // Support both { questions: [...] } and bare array formats
           return Array.isArray(parsed) ? parsed : (parsed.questions || []);
         })
     );
     const allChapterQuestions = await Promise.all(chapterFetches);
     allQuestions = allChapterQuestions.flat();
 
-    // Build chapterKeyMap: { "Factors & Multiples": "factors", ... }
     chapterKeyMap = {};
     chapterKeys.forEach((key, i) => {
       const qs = allChapterQuestions[i];
@@ -288,7 +283,6 @@ async function loadQuestions() {
       }
     });
 
-    // Step 3: Load history.json separately
     const histRes  = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/history.json?ref=${GH_BRANCH}&t=${Date.now()}`, { headers });
     const histData = await histRes.json();
     fileShas["history"] = histData.sha;
@@ -367,12 +361,16 @@ function render() {
     });
   });
 }
+
 async function insertQuestion(id) {
   const q = allQuestions.find(x => x.id === id);
   if (!q || q.used) return;
   try {
     await Word.run(async (context) => {
-      context.document.getSelection().insertOoxml(q.ooxml, Word.InsertLocation.replace);
+      const body = context.document.body;
+      body.load("style");
+      await context.sync();
+      body.insertOoxml(q.ooxml, Word.InsertLocation.end);
       await context.sync();
     });
     const pname = document.getElementById("paper-name").value.trim() || "Unnamed_Paper";
@@ -380,7 +378,7 @@ async function insertQuestion(id) {
     addHistory(pname, [q]);
     showToast("✅ Inserted — " + q.id);
     render(); saveToGitHub();
-  } catch (e) { showToast("❌ Insert failed"); }
+  } catch (e) { showToast("❌ Insert failed: " + e.message); }
 }
 
 // ── Generate ──────────────────────────────────────────────────────────────────
@@ -526,6 +524,7 @@ function removeFromPaper(id) {
   showToast("Removed");
 }
 
+// ✅ FIXED: insertAllToWord — uses body.insertOoxml directly instead of body.getRange(Word.RangeLocation.end)
 async function insertAllToWord() {
   if (!generatedPaper.length) { showToast("❌ Pehle generate karo"); return; }
   const paperName = document.getElementById("gen-paper-name").value.trim() || "Auto_Paper";
@@ -533,27 +532,34 @@ async function insertAllToWord() {
   try {
     await Word.run(async (context) => {
       const body = context.document.body;
+      body.load("style");
+      await context.sync();
+
       for (let i = 0; i < generatedPaper.length; i++) {
         const q = generatedPaper[i];
-        // Insert OMML question
-        body.getRange(Word.RangeLocation.end).insertOoxml(q.ooxml, Word.InsertLocation.before);
+        // ✅ Direct body.insertOoxml — reliable across all Word versions
+        body.insertOoxml(q.ooxml, Word.InsertLocation.end);
         await context.sync();
+
         if (i < generatedPaper.length - 1) {
-          body.getRange(Word.RangeLocation.end).insertParagraph("", Word.InsertLocation.before);
+          body.insertParagraph("", Word.InsertLocation.end);
           await context.sync();
         }
       }
     });
+
     generatedPaper.forEach(q => {
       const orig = allQuestions.find(x => x.id === q.id);
       if (orig) { orig.used = true; orig.usedIn = paperName; }
     });
     addHistory(paperName, generatedPaper);
-    showToast("✅ " + generatedPaper.length + " questions inserted!");
+    showToast(`✅ ${generatedPaper.length} questions inserted!`);
     render(); saveToGitHub();
     generatedPaper = [];
     document.getElementById("paper-output").style.display = "none";
-  } catch (e) { showToast("❌ Insert failed — Word open hai?"); }
+  } catch (e) {
+    showToast("❌ Insert failed: " + e.message);
+  }
 }
 
 async function saveToGitHub() {
@@ -561,9 +567,7 @@ async function saveToGitHub() {
   try {
     const headers = { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" };
 
-    // Save each chapter file with updated question used/usedIn status
     const chapterSaves = chapterKeys.map(key => {
-      // Use chapterKeyMap (reverse lookup) to find questions for this key
       const chapterName = Object.keys(chapterKeyMap).find(name => chapterKeyMap[name] === key);
       const chQuestions = chapterName
         ? allQuestions.filter(q => q.chapter === chapterName)
@@ -576,7 +580,6 @@ async function saveToGitHub() {
       }).then(r => r.json()).then(d => { if (d.content) fileShas[key] = d.content.sha; });
     });
 
-    // Save history.json separately
     const histKey     = "history";
     const histPayload = { history: historyData };
     const histContent = btoa(unescape(encodeURIComponent(JSON.stringify(histPayload, null, 2))));
@@ -616,11 +619,14 @@ async function forceInsert() {
   if (!q) return;
   try {
     await Word.run(async (context) => {
-      context.document.getSelection().insertOoxml(q.ooxml, Word.InsertLocation.replace);
+      const body = context.document.body;
+      body.load("style");
+      await context.sync();
+      body.insertOoxml(q.ooxml, Word.InsertLocation.end);
       await context.sync();
     });
     showToast("✅ Force inserted — " + q.id);
-  } catch(e) { showToast("❌ Insert failed"); }
+  } catch(e) { showToast("❌ Insert failed: " + e.message); }
 }
 
 // ── History ───────────────────────────────────────────────────────────────────
