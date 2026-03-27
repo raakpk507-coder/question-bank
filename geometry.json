@@ -1,0 +1,25 @@
+{
+  "chapter": "Geometry",
+  "questions": [
+    { "id": "GE001", "chapter": "Geometry", "text": "Ek triangle ke teen angles 60°, 70°, aur ? hain. Teesra angle nikalo.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE002", "chapter": "Geometry", "text": "Right angle kitne degree ka hota hai?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE003", "chapter": "Geometry", "text": "Equilateral triangle ki kya khaasiyat hoti hai?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE004", "chapter": "Geometry", "text": "Ek square ke diagonals ke baare mein do properties batao.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE005", "chapter": "Geometry", "text": "Parallel lines aur intersecting lines mein kya fark hai?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE006", "chapter": "Geometry", "text": "Rectangle aur parallelogram mein kya samanta aur antar hai?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE007", "chapter": "Geometry", "text": "Obtuse angle kise kehte hain? 0° se 360° ke beech ek obtuse angle ka example do.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE008", "chapter": "Geometry", "text": "Ek regular hexagon ke andar kitne triangles ban sakte hain?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE009", "chapter": "Geometry", "text": "Complementary aur supplementary angles mein kya fark hai?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE010", "chapter": "Geometry", "text": "Pentagon, hexagon, aur octagon ke angles ka sum kitna hoga (interior angles)?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE011", "chapter": "Geometry", "text": "Ek angle 55° hai. Uska complementary angle kya hoga?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE012", "chapter": "Geometry", "text": "Isosceles triangle ki do khaasiyatein batao.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE013", "chapter": "Geometry", "text": "Circle mein radius, diameter, aur chord define karo. Unka relation likho.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE014", "chapter": "Geometry", "text": "Reflex angle kya hota hai? Example do.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE015", "chapter": "Geometry", "text": "Ek quadrilateral ke angles 90°, 80°, 95°, aur ? hain. Chautha angle nikalo.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE016", "chapter": "Geometry", "text": "Line segment aur ray mein kya fark hai?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE017", "chapter": "Geometry", "text": "Scalene triangle kise kehte hain? Isko equilateral se kaise alag kar sakte ho?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE018", "chapter": "Geometry", "text": "Ek straight angle kitne degrees ka hota hai? Use draw karo.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE019", "chapter": "Geometry", "text": "Rhombus aur square mein kya same hai aur kya different?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "GE020", "chapter": "Geometry", "text": "Angles of elevation aur depression ko diagram ke saath explain karo.", "used": false, "usedIn": "", "ooxml": "" }
+  ]
+}

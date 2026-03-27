@@ -1,0 +1,23 @@
+{
+  "chapter": "Factors & Multiples",
+  "questions": [
+    { "id": "FM001", "chapter": "Factors & Multiples", "text": "36 ke saare factors likho.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM002", "chapter": "Factors & Multiples", "text": "12 aur 18 ka HCF (GCF) kya hai?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM003", "chapter": "Factors & Multiples", "text": "4 aur 6 ka LCM kya hai?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM004", "chapter": "Factors & Multiples", "text": "Kya 72 ek perfect number hai? Kyun?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM005", "chapter": "Factors & Multiples", "text": "1 se 20 tak ke saare prime numbers likho.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM006", "chapter": "Factors & Multiples", "text": "48 ka prime factorization karo (factor tree banao).", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM007", "chapter": "Factors & Multiples", "text": "Do bells ek saath bajte hain. Pehli 6 min mein aur doosri 8 min mein. Kitne minute baad phir saath bajenge?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM008", "chapter": "Factors & Multiples", "text": "Composite number kise kehte hain? 15 composite hai ya prime?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM009", "chapter": "Factors & Multiples", "text": "24 aur 36 ka LCM aur HCF dono nikalo.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM010", "chapter": "Factors & Multiples", "text": "7 ke pehle 5 multiples likho.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM011", "chapter": "Factors & Multiples", "text": "Ek number ka HCF × LCM = ? (product of two numbers ka rule batao)", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM012", "chapter": "Factors & Multiples", "text": "Kya 1 ek prime number hai? Reason do.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM013", "chapter": "Factors & Multiples", "text": "144 ka square root kitna hai? Factorization se nikalo.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM014", "chapter": "Factors & Multiples", "text": "Teen numbers 8, 12, aur 20 ka LCM kya hai?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM015", "chapter": "Factors & Multiples", "text": "Ek class mein 24 ladke aur 36 ladkiyaan hain. Maximum equal groups mein kitne ban sakte hain?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM016", "chapter": "Factors & Multiples", "text": "60 ke saare even factors likho.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM017", "chapter": "Factors & Multiples", "text": "Twin primes kise kehte hain? Ek example do.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "FM018", "chapter": "Factors & Multiples", "text": "HCF (16, 24, 40) = ?", "used": false, "usedIn": "", "ooxml": "" }
+  ]
+}

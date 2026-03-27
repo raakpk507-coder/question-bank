@@ -1,0 +1,23 @@
+{
+  "chapter": "Mensuration",
+  "questions": [
+    { "id": "ME001", "chapter": "Mensuration", "text": "Ek rectangle ki lambai 12 cm aur chauaai 8 cm hai. Area aur Perimeter nikalo.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME002", "chapter": "Mensuration", "text": "Ek square ka perimeter 48 cm hai. Uski side kya hogi?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME003", "chapter": "Mensuration", "text": "Ek triangle ki base 10 cm aur height 6 cm hai. Area kya hoga?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME004", "chapter": "Mensuration", "text": "Circle ka area formula kya hai? r = 7 cm ke liye area nikalo. (π = 22/7)", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME005", "chapter": "Mensuration", "text": "Area aur Perimeter mein kya antar hai? Examples ke saath samjhao.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME006", "chapter": "Mensuration", "text": "Ek room 15 m × 10 m hai. Iske floor pe tiles lagaani hain (1m² = ₹120). Total cost?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME007", "chapter": "Mensuration", "text": "Ek garden ki 4 sides 20m, 15m, 20m, aur 15m hain. Fence lagane ka kharcha ₹50/m pe kya hoga?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME008", "chapter": "Mensuration", "text": "Ek circle ki circumference 44 cm hai. Radius kya hogi? (π = 22/7)", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME009", "chapter": "Mensuration", "text": "Ek square aur rectangle ka area same hai. Rectangle 16cm × 9cm hai. Square ki side?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME010", "chapter": "Mensuration", "text": "L-shaped figure ka area nikalna ho toh kaise nikaalenge? Method explain karo.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME011", "chapter": "Mensuration", "text": "Ek right triangle ki do sides 3 cm aur 4 cm hain. Hypotenuse aur area nikalo.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME012", "chapter": "Mensuration", "text": "Parallelogram ka area formula likho. Base = 14 cm, height = 9 cm hone pe area?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME013", "chapter": "Mensuration", "text": "Ek square ka area 169 cm² hai. Uski side aur perimeter nikalo.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME014", "chapter": "Mensuration", "text": "Ek circular park ka radius 21 m hai. Iske chaaron taraf ek path hai 3.5 m chauaa. Path ka area?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME015", "chapter": "Mensuration", "text": "Do rectangles hain: 6cm × 4cm aur 8cm × 3cm. Dono ka area barabar hai? Perimeter compare karo.", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME016", "chapter": "Mensuration", "text": "1 m² mein kitne cm² hote hain?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME017", "chapter": "Mensuration", "text": "Ek triangle-shaped field ki base 18 m aur height 12 m hai. Beej daalne ka kharcha ₹5/m² pe?", "used": false, "usedIn": "", "ooxml": "" },
+    { "id": "ME018", "chapter": "Mensuration", "text": "Semi-circle ka area aur perimeter formula likho. r = 14 cm pe calculate karo.", "used": false, "usedIn": "", "ooxml": "" }
+  ]
+}

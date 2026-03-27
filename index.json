@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "class": "5",
+    "subject": "Math",
+    "lastUpdated": "2026-03-27",
+    "version": "2.0"
+  },
+  "chapters": [
+    "fractions",
+    "factors",
+    "geometry",
+    "mensuration"
+  ]
+}
