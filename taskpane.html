@@ -235,6 +235,75 @@ let currentChapter = "All";
 let generatedPaper = [];
 let chDist = {};
 
+// ── OMML / eq-field Support ───────────────────────────────────────────────────
+
+function escXml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function cleanEq(eq) {
+  return eq.replace(/\s+xmlns:[a-z]+="[^"]*"/g, '');
+}
+
+function buildParaFromEq(prefix, eq) {
+  const eqClean = cleanEq(eq);
+  let inner = '';
+  if (prefix) inner += `<w:r><w:t xml:space="preserve">${escXml(prefix)} </w:t></w:r>`;
+  inner += eqClean;
+  return `<w:p>${inner}</w:p>`;
+}
+
+const UNICODE_FRACS = {'½':{n:'1',d:'2'},'¼':{n:'1',d:'4'},'¾':{n:'3',d:'4'},'⅓':{n:'1',d:'3'},'⅔':{n:'2',d:'3'}};
+const SUP_DIGITS = {'⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9'};
+
+function ommlFrac(n,d){return `<m:f><m:num><m:r><m:t>${escXml(n)}</m:t></m:r></m:num><m:den><m:r><m:t>${escXml(d)}</m:t></m:r></m:den></m:f>`;}
+function ommlSup(b,e){return `<m:sSup><m:e><m:r><m:t>${escXml(b)}</m:t></m:r></m:e><m:sup><m:r><m:t>${escXml(e)}</m:t></m:r></m:sup></m:sSup>`;}
+function ommlSqrt(i){return `<m:rad><m:radPr><m:degHide m:val="1"/></m:radPr><m:deg/><m:e><m:r><m:t>${escXml(i)}</m:t></m:r></m:e></m:rad>`;}
+function hasMath(t){return /\d+\/\d+|[½¼¾⅓⅔]|[A-Za-z0-9]+\^[A-Za-z0-9]+|[⁰¹²³⁴⁵⁶⁷⁸⁹]|√/.test(t);}
+
+function buildWordPara(text) {
+  if (!hasMath(text)) return `<w:p><w:r><w:t xml:space="preserve">${escXml(text)}</w:t></w:r></w:p>`;
+  const RE = /(\d+)\s+(\d+)\/(\d+)|(\d+)\/(\d+)|([½¼¾⅓⅔])|([A-Za-z0-9]+)\^([A-Za-z0-9]+)|([A-Za-z0-9]+)([⁰¹²³⁴⁵⁶⁷⁸⁹]+)|√([^\s,;.!?]+)/g;
+  let inner='', last=0, m;
+  while((m=RE.exec(text))!==null){
+    if(m.index>last) inner+=`<w:r><w:t xml:space="preserve">${escXml(text.slice(last,m.index))}</w:t></w:r>`;
+    let om='';
+    if(m[1]!==undefined) om=`<m:r><m:t xml:space="preserve">${escXml(m[1])} </m:t></m:r>`+ommlFrac(m[2],m[3]);
+    else if(m[4]!==undefined) om=ommlFrac(m[4],m[5]);
+    else if(m[6]){const f=UNICODE_FRACS[m[6]];om=f?ommlFrac(f.n,f.d):escXml(m[6]);}
+    else if(m[7]!==undefined) om=ommlSup(m[7],m[8]);
+    else if(m[9]!==undefined) om=ommlSup(m[9],m[10].split('').map(c=>SUP_DIGITS[c]||c).join(''));
+    else if(m[11]!==undefined) om=ommlSqrt(m[11]);
+    if(om) inner+=`<m:oMath>${om}</m:oMath>`;
+    last=m.index+m[0].length;
+  }
+  if(last<text.length) inner+=`<w:r><w:t xml:space="preserve">${escXml(text.slice(last))}</w:t></w:r>`;
+  return `<w:p>${inner}</w:p>`;
+}
+
+function wrapOoxml(paras) {
+  return `<pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">` +
+  `<pkg:part pkg:name="/_rels/.rels" pkg:contentType="application/vnd.openxmlformats-package.relationships+xml" pkg:padding="512">` +
+  `<pkg:xmlData><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+  `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>` +
+  `</Relationships></pkg:xmlData></pkg:part>` +
+  `<pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml">` +
+  `<pkg:xmlData>` +
+  `<w:document xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" ` +
+  `xmlns:w="http://schemas.openxmlformats.org/officeDocument/2006/wordprocessingml">` +
+  `<w:body>${paras.join('')}<w:sectPr/></w:body></w:document>` +
+  `</pkg:xmlData></pkg:part></pkg:package>`;
+}
+
+function buildQPara(q, numPrefix) {
+  const pre = numPrefix ? `${numPrefix}. ${q.q || ''}` : (q.q || q.text || '');
+  if (q.eq) return buildParaFromEq(pre, q.eq);
+  const fullText = numPrefix ? `${numPrefix}. ${q.text || ''}` : (q.text || '');
+  return buildWordPara(fullText);
+}
+
+// ── End OMML Helpers ──────────────────────────────────────────────────────────
+
 const CH_COLORS = ["#3b82f6","#22c55e","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#ec4899","#10b981"];
 
 Office.onReady(() => { loadQuestions(); });
@@ -269,7 +338,12 @@ async function loadQuestions() {
           const key = f.name.replace(".json", "");
           fileShas[key] = d.sha;
           const parsed = JSON.parse(atob(d.content.replace(/\n/g, "")));
-          return Array.isArray(parsed) ? parsed : (parsed.questions || []);
+          const qs = Array.isArray(parsed) ? parsed : (parsed.questions || []);
+          // Normalize: if q+eq format, set .text for display
+          qs.forEach(item => {
+            if (!item.text) item.text = item.q || '';
+          });
+          return qs;
         })
     );
     const allChapterQuestions = await Promise.all(chapterFetches);
@@ -362,14 +436,15 @@ function render() {
   });
 }
 
-// ✅ FIX: Plain text insert — no OOXML, no 0x80070057 error
+// ✅ Insert question — raw eq OMML / auto-math / plain text
 async function insertQuestion(id) {
   const q = allQuestions.find(x => x.id === id);
   if (!q || q.used) return;
   try {
     await Word.run(async (context) => {
       const body = context.document.body;
-      body.insertText(q.text, Word.InsertLocation.end);
+      const para = buildQPara(q, null);
+      body.insertOoxml(wrapOoxml([para, '<w:p/>']), Word.InsertLocation.end);
       await context.sync();
     });
     const pname = document.getElementById("paper-name").value.trim() || "Unnamed_Paper";
@@ -523,7 +598,7 @@ function removeFromPaper(id) {
   showToast("Removed");
 }
 
-// ✅ FIX: insertAllToWord — plain text insert, numbered questions
+// ✅ Insert all — raw eq OMML / auto-math batch insert
 async function insertAllToWord() {
   if (!generatedPaper.length) { showToast("❌ Pehle generate karo"); return; }
   const paperName = document.getElementById("gen-paper-name").value.trim() || "Auto_Paper";
@@ -531,15 +606,10 @@ async function insertAllToWord() {
   try {
     await Word.run(async (context) => {
       const body = context.document.body;
-
-      for (let i = 0; i < generatedPaper.length; i++) {
-        const q = generatedPaper[i];
-        const lineText = `Q${i + 1}. ${q.text}`;
-        body.insertText(lineText, Word.InsertLocation.end);
-        // Add a new paragraph after each question
-        body.insertParagraph("", Word.InsertLocation.end);
-        await context.sync();
-      }
+      const paras = generatedPaper.map((q, i) => buildQPara(q, i + 1));
+      paras.push('<w:p/>');
+      body.insertOoxml(wrapOoxml(paras), Word.InsertLocation.end);
+      await context.sync();
     });
 
     generatedPaper.forEach(q => {
@@ -606,7 +676,7 @@ function closeFP() {
   forceQId = null;
 }
 
-// ✅ FIX: forceInsert — plain text bhi
+// ✅ FIX: forceInsert — raw eq OMML / auto-math / plain text
 async function forceInsert() {
   if (!forceQId) return;
   closeFP();
@@ -615,7 +685,8 @@ async function forceInsert() {
   try {
     await Word.run(async (context) => {
       const body = context.document.body;
-      body.insertText(q.text, Word.InsertLocation.end);
+      const para = buildQPara(q, null);
+      body.insertOoxml(wrapOoxml([para, '<w:p/>']), Word.InsertLocation.end);
       await context.sync();
     });
     showToast("✅ Force inserted — " + q.id);
