@@ -241,8 +241,11 @@ function escXml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// Strip only duplicate xmlns (keep m: and w: — declared on w:document)
 function cleanEq(eq) {
-  return eq.replace(/\s+xmlns:[a-z]+="[^"]*"/g, '');
+  return eq
+    .replace(/\s+xmlns:m="http:\/\/schemas\.openxmlformats\.org\/officeDocument\/2006\/math"/g, '')
+    .replace(/\s+xmlns:w="http:\/\/schemas\.openxmlformats\.org\/officeDocument\/2006\/wordprocessingml"/g, '');
 }
 
 function buildParaFromEq(prefix, eq) {
@@ -282,17 +285,36 @@ function buildWordPara(text) {
 }
 
 function wrapOoxml(paras) {
-  return `<pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">` +
-  `<pkg:part pkg:name="/_rels/.rels" pkg:contentType="application/vnd.openxmlformats-package.relationships+xml" pkg:padding="512">` +
-  `<pkg:xmlData><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
-  `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>` +
-  `</Relationships></pkg:xmlData></pkg:part>` +
-  `<pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml">` +
-  `<pkg:xmlData>` +
-  `<w:document xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" ` +
-  `xmlns:w="http://schemas.openxmlformats.org/officeDocument/2006/wordprocessingml">` +
-  `<w:body>${paras.join('')}<w:sectPr/></w:body></w:document>` +
-  `</pkg:xmlData></pkg:part></pkg:package>`;
+  const NS_W  = 'xmlns:w="http://schemas.openxmlformats.org/officeDocument/2006/wordprocessingml"';
+  const NS_M  = 'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"';
+  const NS_R  = 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  const NS_WP = 'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"';
+  return (
+    `<pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">` +
+    `<pkg:part pkg:name="/_rels/.rels"` +
+      ` pkg:contentType="application/vnd.openxmlformats-package.relationships+xml"` +
+      ` pkg:padding="512">` +
+      `<pkg:xmlData>` +
+        `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+          `<Relationship Id="rId1"` +
+            ` Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"` +
+            ` Target="word/document.xml"/>` +
+        `</Relationships>` +
+      `</pkg:xmlData>` +
+    `</pkg:part>` +
+    `<pkg:part pkg:name="/word/document.xml"` +
+      ` pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml">` +
+      `<pkg:xmlData>` +
+        `<w:document ${NS_W} ${NS_M} ${NS_R} ${NS_WP}>` +
+          `<w:body>` +
+            `${paras.join('')}` +
+            `<w:sectPr></w:sectPr>` +
+          `</w:body>` +
+        `</w:document>` +
+      `</pkg:xmlData>` +
+    `</pkg:part>` +
+    `</pkg:package>`
+  );
 }
 
 function buildQPara(q, numPrefix) {
@@ -444,7 +466,7 @@ async function insertQuestion(id) {
     await Word.run(async (context) => {
       const body = context.document.body;
       const para = buildQPara(q, null);
-      body.insertOoxml(wrapOoxml([para, '<w:p/>']), Word.InsertLocation.end);
+      body.insertOoxml(wrapOoxml([para, '<w:p></w:p>']), Word.InsertLocation.end);
       await context.sync();
     });
     const pname = document.getElementById("paper-name").value.trim() || "Unnamed_Paper";
@@ -607,7 +629,7 @@ async function insertAllToWord() {
     await Word.run(async (context) => {
       const body = context.document.body;
       const paras = generatedPaper.map((q, i) => buildQPara(q, i + 1));
-      paras.push('<w:p/>');
+      paras.push('<w:p></w:p>');
       body.insertOoxml(wrapOoxml(paras), Word.InsertLocation.end);
       await context.sync();
     });
@@ -686,7 +708,7 @@ async function forceInsert() {
     await Word.run(async (context) => {
       const body = context.document.body;
       const para = buildQPara(q, null);
-      body.insertOoxml(wrapOoxml([para, '<w:p/>']), Word.InsertLocation.end);
+      body.insertOoxml(wrapOoxml([para, '<w:p></w:p>']), Word.InsertLocation.end);
       await context.sync();
     });
     showToast("✅ Force inserted — " + q.id);
