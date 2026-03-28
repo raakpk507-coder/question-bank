@@ -1,0 +1,45 @@
+{
+  "chapter": "Algebra",
+  "questions": [
+    {
+      "id": "alg_001",
+      "chapter": "Algebra",
+      "q": "Solve:",
+      "eq": "<m:oMath xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\"><m:sSup><m:sSupPr><m:ctrlPr><w:rPr xmlns:w=\"http://schemas.openxmlformats.org/officeDocument/2006/wordprocessingml\"/></m:ctrlPr></m:sSupPr><m:e><m:r><m:t>x</m:t></m:r></m:e><m:sup><m:r><m:t>2</m:t></m:r></m:sup></m:sSup><m:r><m:t xml:space=\"preserve\"> + 5x + 6 = 0</m:t></m:r></m:oMath>",
+      "used": false,
+      "usedIn": ""
+    },
+    {
+      "id": "alg_002",
+      "chapter": "Algebra",
+      "q": "Evaluate:",
+      "eq": "<m:oMath xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\"><m:f><m:fPr><m:type m:val=\"bar\"/></m:fPr><m:num><m:r><m:t>3x + 2</m:t></m:r></m:num><m:den><m:r><m:t>5</m:t></m:r></m:den></m:f><m:r><m:t xml:space=\"preserve\"> = 4</m:t></m:r></m:oMath>",
+      "used": false,
+      "usedIn": ""
+    },
+    {
+      "id": "alg_003",
+      "chapter": "Algebra",
+      "q": "Simplify:",
+      "eq": "<m:oMath xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\"><m:sSup><m:sSupPr><m:ctrlPr><w:rPr xmlns:w=\"http://schemas.openxmlformats.org/officeDocument/2006/wordprocessingml\"/></m:ctrlPr></m:sSupPr><m:e><m:r><m:t>a</m:t></m:r></m:e><m:sup><m:r><m:t>3</m:t></m:r></m:sup></m:sSup><m:r><m:t xml:space=\"preserve\"> × </m:t></m:r><m:sSup><m:sSupPr><m:ctrlPr><w:rPr xmlns:w=\"http://schemas.openxmlformats.org/officeDocument/2006/wordprocessingml\"/></m:ctrlPr></m:sSupPr><m:e><m:r><m:t>a</m:t></m:r></m:e><m:sup><m:r><m:t>2</m:t></m:r></m:sup></m:sSup></m:oMath>",
+      "used": false,
+      "usedIn": ""
+    },
+    {
+      "id": "alg_004",
+      "chapter": "Algebra",
+      "q": "Find the value of x:",
+      "eq": "<m:oMath xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\"><m:rad><m:radPr><m:degHide m:val=\"1\"/><m:ctrlPr><w:rPr xmlns:w=\"http://schemas.openxmlformats.org/officeDocument/2006/wordprocessingml\"/></m:ctrlPr></m:radPr><m:deg/><m:e><m:r><m:t>x</m:t></m:r></m:e></m:rad><m:r><m:t xml:space=\"preserve\"> = 7</m:t></m:r></m:oMath>",
+      "used": false,
+      "usedIn": ""
+    },
+    {
+      "id": "alg_005",
+      "chapter": "Algebra",
+      "q": "If",
+      "eq": "<m:oMath xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\"><m:r><m:t xml:space=\"preserve\">p = 3, q = 4, find </m:t></m:r><m:f><m:fPr><m:type m:val=\"bar\"/></m:fPr><m:num><m:r><m:t>p</m:t></m:r></m:num><m:den><m:r><m:t>q</m:t></m:r></m:den></m:f><m:r><m:t xml:space=\"preserve\"> + </m:t></m:r><m:f><m:fPr><m:type m:val=\"bar\"/></m:fPr><m:num><m:r><m:t>q</m:t></m:r></m:num><m:den><m:r><m:t>p</m:t></m:r></m:den></m:f></m:oMath>",
+      "used": false,
+      "usedIn": ""
+    }
+  ]
+}
