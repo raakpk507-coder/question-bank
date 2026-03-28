@@ -285,35 +285,14 @@ function buildWordPara(text) {
 }
 
 function wrapOoxml(paras) {
-  const NS_W  = 'xmlns:w="http://schemas.openxmlformats.org/officeDocument/2006/wordprocessingml"';
-  const NS_M  = 'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"';
-  const NS_R  = 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
-  const NS_WP = 'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"';
   return (
-    `<pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">` +
-    `<pkg:part pkg:name="/_rels/.rels"` +
-      ` pkg:contentType="application/vnd.openxmlformats-package.relationships+xml"` +
-      ` pkg:padding="512">` +
-      `<pkg:xmlData>` +
-        `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
-          `<Relationship Id="rId1"` +
-            ` Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"` +
-            ` Target="word/document.xml"/>` +
-        `</Relationships>` +
-      `</pkg:xmlData>` +
-    `</pkg:part>` +
-    `<pkg:part pkg:name="/word/document.xml"` +
-      ` pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml">` +
-      `<pkg:xmlData>` +
-        `<w:document ${NS_W} ${NS_M} ${NS_R} ${NS_WP}>` +
-          `<w:body>` +
-            `${paras.join('')}` +
-            `<w:sectPr></w:sectPr>` +
-          `</w:body>` +
-        `</w:document>` +
-      `</pkg:xmlData>` +
-    `</pkg:part>` +
-    `</pkg:package>`
+    `<w:body` +
+    ` xmlns:w="http://schemas.openxmlformats.org/officeDocument/2006/wordprocessingml"` +
+    ` xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"` +
+    ` xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"` +
+    ` xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">` +
+    paras.join('') +
+    `</w:body>`
   );
 }
 
