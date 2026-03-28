@@ -2,14 +2,15 @@
   "meta": {
     "class": "5",
     "subject": "Math",
-    "lastUpdated": "2026-03-27",
+    "lastUpdated": "2026-03-28",
     "version": "2.0"
   },
   "chapters": [
     "fractions",
     "factors",
     "geometry",
-    "mensuration"
+    "mensuration",
+    "algebra"
   ],
   "historyFile": "history"
 }
